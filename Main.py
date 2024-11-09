@@ -5,9 +5,12 @@ from datetime import datetime
 
 # Combine all data into a single DataFrame
 april_data = pd.read_csv('april_2024.csv',  encoding='ISO-8859-1')
+may_data = pd.read_csv('may_2024.csv', encoding='ISO-8859-1')
 june_data = pd.read_csv('june_2024.csv', encoding='ISO-8859-1')
 july_data = pd.read_csv('july_2024.csv', encoding='ISO-8859-1')
 august_data = pd.read_csv('august_2024.csv', encoding='ISO-8859-1')
+september_data = pd.read_csv('september_2024.csv', encoding='ISO-8859-1')
+
 combined_data = pd.concat([april_data, june_data, july_data, august_data], ignore_index=True)
 
 # Convert 'Sent Date' to datetime
