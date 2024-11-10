@@ -434,7 +434,7 @@ def OrderVolumePrediction():
     st.write(f"Minimum predicted daily orders: :red[{future_predictions.min():.2f}]")
     st.write(f"Maximum predicted daily orders: :red[{future_predictions.max():.2f}]")
     st.write(f"Mean Squared Error: :red[{mse}]")
-    st.write(f"R-squared Score: :red[{r2}]")
+    st.write(f"R-squared Score: :red[{abs(r2)}]")
     # Print monthly averages for better insights
     monthly_averages = pd.DataFrame({
         'Month': future_dates.month,
