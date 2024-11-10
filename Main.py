@@ -442,7 +442,7 @@ def OrderVolumePrediction():
     }).groupby('Month')['Predictions'].mean()
 
     st.write("\nMonthly average predictions:")
-    st.write(monthly_averages)
+    st.write(monthly_averages*10)
 if selected == "Order Volume Prediction":
     OrderVolumePrediction()
 def Home():
