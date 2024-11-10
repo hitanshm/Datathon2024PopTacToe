@@ -14,7 +14,7 @@ october_data = pd.read_csv('october_2024.csv', encoding='ISO-8859-1')
 
 # Combine all data
 combined_data = pd.concat([april_data, may_data, june_data, july_data, august_data, september_data, october_data], ignore_index=True)
-
+combined_data = combined_data[~combined_data['Modifier'].str.contains('No', case=False, na=False)]
 # Convert 'Sent Date' to datetime
 combined_data['Sent Date'] = pd.to_datetime(combined_data['Sent Date'])
 
@@ -90,3 +90,116 @@ plt.show()
 
 # Print the order counts for verification
 print(monthly_order_volume)
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# Assuming the previous data loading and preprocessing steps are already done
+print("Hours1",combined_data['Hour'])
+# Feature engineering
+combined_data['DayOfWeek'] = combined_data['Sent Date'].dt.dayofweek
+combined_data['Month'] = combined_data['Sent Date'].dt.month
+combined_data['Hour'] = combined_data['Sent Date'].dt.hour
+print("Hours2",combined_data['Hour'])
+
+# Aggregate data by day
+daily_data = combined_data.groupby(['Sent Date', 'DayOfWeek', 'Month']).agg({
+    'Order ID': 'nunique',
+    'Parent Menu Selection': lambda x: x.value_counts().index[0],
+    'Modifier': lambda x: x.value_counts().index[0]
+}).reset_index()
+
+daily_data.columns = ['Date', 'DayOfWeek', 'Month', 'OrderCount', 'TopMenuItem', 'TopModifier']
+
+# Prepare features and target
+X = daily_data[['DayOfWeek', 'Month']]
+y = daily_data['OrderCount']
+
+# Split the data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create a pipeline with preprocessing and model
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', 'passthrough', ['DayOfWeek', 'Month'])
+    ])
+
+model = Pipeline([
+    ('preprocessor', preprocessor),
+    ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))
+])
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"Mean Squared Error: {mse}")
+print(f"R-squared Score: {r2}")
+
+# Feature importance
+feature_importance = model.named_steps['regressor'].feature_importances_
+feature_names = ['DayOfWeek', 'Month']
+
+for name, importance in zip(feature_names, feature_importance):
+    print(f"{name}: {importance}")
+
+# Predict future order volumes
+future_dates = pd.date_range(start='2024-11-01', end='2024-12-31')
+future_X = pd.DataFrame({
+    'DayOfWeek': future_dates.dayofweek,
+    'Month': future_dates.month
+})
+
+future_predictions = model.predict(future_X)
+
+# Visualize predictions
+plt.figure(figsize=(12, 6))
+plt.plot(future_dates, future_predictions, label='Predicted Orders')
+plt.title('Predicted Daily Order Volume (November-December 2024)')
+plt.xlabel('Date')
+plt.ylabel('Number of Orders')
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# Analyze peak hours
+hourly_orders = combined_data.groupby('Hour')['Order ID'].nunique()
+print("combined",combined_data)
+peak_hours = hourly_orders[hourly_orders > hourly_orders.mean() + hourly_orders.std()].index
+
+print("Peak Hours:", peak_hours.tolist())
+
+# Analyze popular menu items and modifiers
+popular_items = combined_data['Parent Menu Selection'].value_counts().head(5)
+popular_modifiers = combined_data['Modifier'].value_counts().head(10)
+
+print("\nTop 5 Menu Items:")
+print(popular_items)
+
+print("\nTop 10 Modifiers:")
+print(popular_modifiers)
+
+# Calculate average items per order
+items_per_order = combined_data.groupby('Order ID').size().mean()
+print(f"\nAverage Items per Order: {items_per_order:.2f}")
+
+# Provide insights and recommendations
+print("\nInsights and Recommendations:")
+print(f"1. Staffing: Increase staff by 30-50% during peak hours: {peak_hours.tolist()}")
+print(f"2. Inventory: Ensure at least {int(popular_items.iloc[0] * 1.2/365)} servings of {popular_items.index[0]} are prepared daily")
+print(f"3. Modifiers: Stock up on {popular_modifiers.index[0]} and {popular_modifiers.index[1]}, with at least {int(popular_modifiers.iloc[0] * 1.2)} servings each")
+print(f"4. Order Efficiency: Prepare for an average of {items_per_order:.2f} items per order")
+print("5. Menu Optimization: Consider creating combo meals based on popular item and modifier combinations")
+print("6. Demand Forecasting: Use the predictive model to adjust staffing and inventory for upcoming months")
