@@ -362,8 +362,6 @@ print(f"R-squared Score: {r2}")
 feature_importance = model.feature_importances_
 feature_names = X.columns
 
-for name, importance in zip(feature_names, feature_importance):
-    print(f"{name}: {importance}")
 
 
 def OrderVolumePrediction():
@@ -402,7 +400,7 @@ def OrderVolumePrediction():
     prediction = model.predict(selected_X)[0]
     prediction_clipped = np.clip(prediction, 0, 750)  # Clip to max of 750 orders
 
-    st.write(f"Predicted order volume for {selected_date}: {prediction_clipped:.0f}")
+    st.write(f"Predicted order volume for {selected_date}: :red[{prediction_clipped:.0f}]")
 
     # Predict future order volumes for a full year (November 2024 - October 2025)
     future_dates = pd.date_range(start='2024-11-01', end='2025-10-31')
@@ -494,7 +492,6 @@ def Home():
 
     # Display button with customized style
     if st.button("Analyze Data"):
-        st.markdown('<div class="fade show">Button clicked!</div>', unsafe_allow_html=True)
         MonthlyMenuSelections()
         Top10Modifiers()
         PopularToppings()
