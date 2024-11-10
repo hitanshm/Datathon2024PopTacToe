@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orders for {{ month }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Orders for {{ month }}</h1>
+    <canvas id="ordersChart" width="400" height="200"></canvas>
+    <script>
+        const ordersData = {{ orders | tojson }};
+        const labels = [];
+        const data = [];
+
+        // Aggregate orders by date
+        const ordersByDate = {};
+        ordersData.forEach(order => {
+            const date = order.date;
+            if (!ordersByDate[date]) {
+                ordersByDate[date] = 0;
+            }
+            ordersByDate[date] += 1;
+        });
+
+        for (const date in ordersByDate) {
+            labels.push(date);
+            data.push(ordersByDate[date]);
+        }
+
+        const ctx = document.getElementById('ordersChart').getContext('2d');
+        const ordersChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Number of Orders',
+                    data: data,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
