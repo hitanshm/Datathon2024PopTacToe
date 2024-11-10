@@ -1,5 +1,5 @@
 from collections import Counter
-
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,7 +15,8 @@ september_data = pd.read_csv('september_2024.csv', encoding='ISO-8859-1')
 october_data = pd.read_csv('october_2024.csv', encoding='ISO-8859-1')
 
 # Combine all data
-combined_data = pd.concat([april_data, may_data, june_data, july_data, august_data, september_data, october_data], ignore_index=True)
+combined_data = pd.concat([april_data, may_data, june_data, july_data, august_data, september_data, october_data],
+                          ignore_index=True)
 combined_data = combined_data[~combined_data['Modifier'].str.contains('No', case=False, na=False)]
 # Convert 'Sent Date' to datetime
 combined_data['Sent Date'] = pd.to_datetime(combined_data['Sent Date'])
@@ -24,7 +25,8 @@ combined_data['Sent Date'] = pd.to_datetime(combined_data['Sent Date'])
 combined_data['Month'] = combined_data['Sent Date'].dt.to_period('M')
 
 # Count unique orders per month and menu selection
-monthly_menu_counts = combined_data.groupby(['Month', 'Parent Menu Selection'])['Order ID'].nunique().unstack(fill_value=0)
+monthly_menu_counts = combined_data.groupby(['Month', 'Parent Menu Selection'])['Order ID'].nunique().unstack(
+    fill_value=0)
 
 # Plot stacked area chart
 fig, ax = plt.subplots(figsize=(12, 6))
@@ -35,6 +37,7 @@ plt.ylabel('Number of Orders', fontsize=12)
 plt.legend(title='Menu Selection', bbox_to_anchor=(1.05, 1), loc='upper left')
 ax.set_xticklabels([label.get_text().split('-')[1] for label in ax.get_xticklabels()])
 plt.tight_layout()
+st.pyplot(plt)
 plt.show()
 
 # Analyze popular modifiers for Mac and Cheese
@@ -48,6 +51,7 @@ plt.xlabel('Modifier', fontsize=12)
 plt.ylabel('Number of Orders', fontsize=12)
 plt.xticks(rotation=45, ha='right', fontsize=10)
 plt.tight_layout()
+st.pyplot(plt)
 plt.show()
 
 # Analyze popular toppings
@@ -61,6 +65,7 @@ plt.xlabel('Topping', fontsize=12)
 plt.ylabel('Number of Orders', fontsize=12)
 plt.xticks(rotation=45, ha='right', fontsize=10)
 plt.tight_layout()
+st.pyplot(plt)
 plt.show()
 
 # Analyze order patterns by hour of day
@@ -75,6 +80,7 @@ plt.ylabel('Number of Orders', fontsize=12)
 plt.xticks(range(0, 24), fontsize=10)
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.tight_layout()
+st.pyplot(plt)
 plt.show()
 
 # Monthly order volume
@@ -88,6 +94,7 @@ plt.ylabel('Number of Orders', fontsize=12)
 month_names = ['April', 'May', 'June', 'July', 'August', 'September', 'October']
 ax.set_xticklabels(month_names, rotation=45, ha='right')
 plt.tight_layout()
+st.pyplot(plt)
 plt.show()
 
 # Print the order counts for verification
@@ -98,49 +105,54 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
+from datetime import timedelta
 
-# Assuming the previous data loading and preprocessing steps are already done
-print("Hours1",combined_data['Hour'])
-# Feature engineering
-combined_data['DayOfWeek'] = combined_data['Sent Date'].dt.dayofweek
-combined_data['Month'] = combined_data['Sent Date'].dt.month
-combined_data['Hour'] = combined_data['Sent Date'].dt.hour
-print("Hours2",combined_data['Hour'])
 
-# Aggregate data by day
-daily_data = combined_data.groupby(['Sent Date', 'DayOfWeek', 'Month']).agg({
-    'Order ID': 'nunique',
-    'Parent Menu Selection': lambda x: x.value_counts().index[0],
-    'Modifier': lambda x: x.value_counts().index[0]
-}).reset_index()
+# Load and preprocess data
+csv_files = ['april_2024.csv', 'may_2024.csv', 'june_2024.csv', 'july_2024.csv',
+             'august_2024.csv', 'september_2024.csv', 'october_2024.csv']
 
-daily_data.columns = ['Date', 'DayOfWeek', 'Month', 'OrderCount', 'TopMenuItem', 'TopModifier']
+combined_data = pd.concat([pd.read_csv(file, encoding='ISO-8859-1') for file in csv_files], ignore_index=True)
+combined_data = combined_data[~combined_data['Modifier'].str.contains('No', case=False, na=False)]
+
+# Convert 'Sent Date' to datetime
+combined_data['Sent Date'] = pd.to_datetime(combined_data['Sent Date'])
+
+# Group by date and get the highest order number for each day
+daily_orders = combined_data.groupby(combined_data['Sent Date'].dt.date)['Order #'].max().reset_index()
+daily_orders.columns = ['Date', 'OrderCount']
+
+# Add features
+daily_orders['Date'] = pd.to_datetime(daily_orders['Date'])
+daily_orders['DayOfWeek'] = daily_orders['Date'].dt.dayofweek
+daily_orders['Month'] = daily_orders['Date'].dt.month
+daily_orders['DayOfMonth'] = daily_orders['Date'].dt.day
+
+# Add school session feature
+def is_school_session(date):
+    month = date.month
+    day = date.day
+    if (month == 8 and day >= 15) or (month > 8 and month < 12) or (month == 12 and day <= 15):
+        return 1  # Fall semester
+    elif (month == 1 and day >= 15) or (month > 1 and month < 5) or (month == 5 and day <= 15):
+        return 1  # Spring semester
+    else:
+        return 0  # Break
+
+daily_orders['SchoolSession'] = daily_orders['Date'].apply(is_school_session)
 
 # Prepare features and target
-X = daily_data[['DayOfWeek', 'Month']]
-y = daily_data['OrderCount']
+X = daily_orders[['DayOfWeek', 'Month', 'DayOfMonth', 'SchoolSession']]
+y = daily_orders['OrderCount']
 
 # Split the data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Create a pipeline with preprocessing and model
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('num', 'passthrough', ['DayOfWeek', 'Month'])
-    ])
-
-model = Pipeline([
-    ('preprocessor', preprocessor),
-    ('regressor', RandomForestRegressor(n_estimators=100, random_state=42))
-])
-
-# Train the model
+# Create and train the model
+model = RandomForestRegressor(n_estimators=100, random_state=42)
 model.fit(X_train, y_train)
 
-# Make predictions
+# Make predictions on test set
 y_pred = model.predict(X_test)
 
 # Evaluate the model
@@ -151,122 +163,69 @@ print(f"Mean Squared Error: {mse}")
 print(f"R-squared Score: {r2}")
 
 # Feature importance
-feature_importance = model.named_steps['regressor'].feature_importances_
-feature_names = ['DayOfWeek', 'Month']
+feature_importance = model.feature_importances_
+feature_names = X.columns
 
 for name, importance in zip(feature_names, feature_importance):
     print(f"{name}: {importance}")
 
-# Predict future order volumes
-future_dates = pd.date_range(start='2024-11-01', end='2024-12-31')
+# Streamlit app layout
+st.title('Order Volume Prediction')
+
+# Date selector for specific predictions
+selected_date = st.date_input('Select a date for prediction', value=pd.to_datetime('2025-01-01'))
+
+# Prepare input for prediction based on selected date
+selected_X = pd.DataFrame({
+    'DayOfWeek': [selected_date.weekday()],
+    'Month': [selected_date.month],
+    'DayOfMonth': [selected_date.day],
+    'SchoolSession': [is_school_session(selected_date)]
+})
+
+# Make prediction for the selected date
+prediction = model.predict(selected_X)[0]
+prediction_clipped = np.clip(prediction, 0, 750)  # Clip to max of 750 orders
+
+st.write(f"Predicted order volume for {selected_date}: {prediction_clipped:.0f}")
+
+# Predict future order volumes for a full year (November 2024 - October 2025)
+future_dates = pd.date_range(start='2024-11-01', end='2025-10-31')
 future_X = pd.DataFrame({
     'DayOfWeek': future_dates.dayofweek,
-    'Month': future_dates.month
+    'Month': future_dates.month,
+    'DayOfMonth': future_dates.day,
+    'SchoolSession': [is_school_session(date) for date in future_dates]
 })
 
 future_predictions = model.predict(future_X)
 
-# Visualize predictions
-plt.figure(figsize=(12, 6))
+# Clip predictions to avoid unrealistic values (e.g., over a certain threshold)
+future_predictions = np.clip(future_predictions, 0, 750)  # Set max to 750 orders
+
+# Visualize predictions for the full year
+plt.figure(figsize=(16, 8))
 plt.plot(future_dates, future_predictions, label='Predicted Orders')
-plt.title('Predicted Daily Order Volume (November-December 2024)')
-plt.xlabel('Date')
-plt.ylabel('Number of Orders')
-plt.legend()
+plt.title('Predicted Daily Order Volume (November 2024 - October 2025)', fontsize=16)
+plt.xlabel('Date', fontsize=12)
+plt.ylabel('Number of Orders', fontsize=12)
+plt.legend(fontsize=10)
+plt.grid(True, linestyle='--', alpha=0.7)
 plt.tight_layout()
+st.pyplot(plt)
 plt.show()
 
-# Analyze peak hours
-hourly_orders = combined_data.groupby('Hour')['Order ID'].nunique()
-print("combined",combined_data)
-peak_hours = hourly_orders[hourly_orders > hourly_orders.mean() + hourly_orders.std()].index
+# Print some statistics about the predictions
+st.write("\nPrediction Statistics:")
+st.write(f"Average predicted daily orders: {future_predictions.mean():.2f}")
+st.write(f"Minimum predicted daily orders: {future_predictions.min():.2f}")
+st.write(f"Maximum predicted daily orders: {future_predictions.max():.2f}")
 
-print("Peak Hours:", peak_hours.tolist())
+# Print monthly averages for better insights
+monthly_averages = pd.DataFrame({
+    'Month': future_dates.month,
+    'Predictions': future_predictions
+}).groupby('Month')['Predictions'].mean()
 
-# Analyze popular menu items and modifiers
-popular_items = combined_data['Parent Menu Selection'].value_counts().head(5)
-popular_modifiers = combined_data['Modifier'].value_counts().head(10)
-
-print("\nTop 5 Menu Items:")
-print(popular_items)
-
-print("\nTop 10 Modifiers:")
-print(popular_modifiers)
-
-# Calculate average items per order
-items_per_order = combined_data.groupby('Order ID').size().mean()
-print(f"\nAverage Items per Order: {items_per_order:.2f}")
-
-# Provide insights and recommendations
-print("\nInsights and Recommendations:")
-print(f"1. Staffing: Increase staff by 30-50% during peak hours: {peak_hours.tolist()}")
-print(f"2. Inventory: Ensure at least {int(popular_items.iloc[0] * 1.2/365)} servings of {popular_items.index[0]} are prepared daily")
-print(f"3. Modifiers: Stock up on {popular_modifiers.index[0]} and {popular_modifiers.index[1]}, with at least {int(popular_modifiers.iloc[0] * 1.2)} servings each")
-print(f"4. Order Efficiency: Prepare for an average of {items_per_order:.2f} items per order")
-print("5. Menu Optimization: Consider creating combo meals based on popular item and modifier combinations")
-print("6. Demand Forecasting: Use the predictive model to adjust staffing and inventory for upcoming months")
-
-
-mac_cheese_data = combined_data[combined_data['Parent Menu Selection'] == 'Mac and Cheese']
-
-
-# Function to get combinations for an order
-def get_combination(group):
-    cheese = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Cheese']['Modifier'].tolist()))
-    meats = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Meats']['Modifier'].tolist()))
-    toppings = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Toppings']['Modifier'].tolist()))
-    drizzles = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Drizzles']['Modifier'].tolist()))
-
-    # Replace empty strings with 'None'
-    cheese = cheese if cheese else 'None'
-    meats = meats if meats else 'None'
-    toppings = toppings if toppings else 'None'
-    drizzles = drizzles if drizzles else 'None'
-
-    return (cheese, meats, toppings, drizzles)
-
-
-# Get combinations for each order
-combinations = mac_cheese_data.groupby('Order ID').apply(get_combination)
-
-# Count the occurrences of each combination
-combination_counts = Counter(combinations)
-
-# Get the top 10 most popular combinations
-top_combinations = combination_counts.most_common(10)
-
-print("Top 10 Popular Mac and Cheese Combinations:")
-for i, (combination, count) in enumerate(top_combinations, 1):
-    cheese, meats, toppings, drizzles = combination
-    print(f"{i}. Ordered {count} times:")
-    print(f"   Cheese: {cheese}")
-    print(f"   Meats: {meats}")
-    print(f"   Toppings: {toppings}")
-    print(f"   Drizzles: {drizzles}")
-    print()
-
-# Analyze popular cheese-meat combinations
-cheese_meat_combinations = mac_cheese_data.groupby('Order ID').apply(
-    lambda x: (
-        ', '.join(filter(None, x[x['Option Group Name'] == 'Choose Your Cheese']['Modifier'])) or 'None',
-        ', '.join(filter(None, x[x['Option Group Name'] == 'Choose Your Meats']['Modifier'])) or 'None'
-    )
-)
-cheese_meat_counts = Counter(cheese_meat_combinations)
-top_cheese_meat = cheese_meat_counts.most_common(5)
-
-print("Top 5 Popular Cheese-Meat Combinations:")
-for i, ((cheese, meat), count) in enumerate(top_cheese_meat, 1):
-    print(f"{i}. {cheese} with {meat}: Ordered {count} times")
-
-# Analyze popular topping combinations
-topping_combinations = mac_cheese_data.groupby('Order ID').apply(
-    lambda x: tuple(sorted(filter(None, x[x['Option Group Name'] == 'Choose Your Toppings']['Modifier'].tolist()))) or (
-    'None',)
-)
-topping_counts = Counter(topping_combinations)
-top_toppings = topping_counts.most_common(5)
-
-print("\nTop 5 Popular Topping Combinations:")
-for i, (toppings, count) in enumerate(top_toppings, 1):
-    print(f"{i}. {', '.join(toppings)}: Ordered {count} times")
+st.write("\nMonthly average predictions:")
+st.write(monthly_averages)
