@@ -1,3 +1,5 @@
+from collections import Counter
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -203,3 +205,68 @@ print(f"3. Modifiers: Stock up on {popular_modifiers.index[0]} and {popular_modi
 print(f"4. Order Efficiency: Prepare for an average of {items_per_order:.2f} items per order")
 print("5. Menu Optimization: Consider creating combo meals based on popular item and modifier combinations")
 print("6. Demand Forecasting: Use the predictive model to adjust staffing and inventory for upcoming months")
+
+
+mac_cheese_data = combined_data[combined_data['Parent Menu Selection'] == 'Mac and Cheese']
+
+
+# Function to get combinations for an order
+def get_combination(group):
+    cheese = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Cheese']['Modifier'].tolist()))
+    meats = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Meats']['Modifier'].tolist()))
+    toppings = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Toppings']['Modifier'].tolist()))
+    drizzles = ', '.join(filter(None, group[group['Option Group Name'] == 'Choose Your Drizzles']['Modifier'].tolist()))
+
+    # Replace empty strings with 'None'
+    cheese = cheese if cheese else 'None'
+    meats = meats if meats else 'None'
+    toppings = toppings if toppings else 'None'
+    drizzles = drizzles if drizzles else 'None'
+
+    return (cheese, meats, toppings, drizzles)
+
+
+# Get combinations for each order
+combinations = mac_cheese_data.groupby('Order ID').apply(get_combination)
+
+# Count the occurrences of each combination
+combination_counts = Counter(combinations)
+
+# Get the top 10 most popular combinations
+top_combinations = combination_counts.most_common(10)
+
+print("Top 10 Popular Mac and Cheese Combinations:")
+for i, (combination, count) in enumerate(top_combinations, 1):
+    cheese, meats, toppings, drizzles = combination
+    print(f"{i}. Ordered {count} times:")
+    print(f"   Cheese: {cheese}")
+    print(f"   Meats: {meats}")
+    print(f"   Toppings: {toppings}")
+    print(f"   Drizzles: {drizzles}")
+    print()
+
+# Analyze popular cheese-meat combinations
+cheese_meat_combinations = mac_cheese_data.groupby('Order ID').apply(
+    lambda x: (
+        ', '.join(filter(None, x[x['Option Group Name'] == 'Choose Your Cheese']['Modifier'])) or 'None',
+        ', '.join(filter(None, x[x['Option Group Name'] == 'Choose Your Meats']['Modifier'])) or 'None'
+    )
+)
+cheese_meat_counts = Counter(cheese_meat_combinations)
+top_cheese_meat = cheese_meat_counts.most_common(5)
+
+print("Top 5 Popular Cheese-Meat Combinations:")
+for i, ((cheese, meat), count) in enumerate(top_cheese_meat, 1):
+    print(f"{i}. {cheese} with {meat}: Ordered {count} times")
+
+# Analyze popular topping combinations
+topping_combinations = mac_cheese_data.groupby('Order ID').apply(
+    lambda x: tuple(sorted(filter(None, x[x['Option Group Name'] == 'Choose Your Toppings']['Modifier'].tolist()))) or (
+    'None',)
+)
+topping_counts = Counter(topping_combinations)
+top_toppings = topping_counts.most_common(5)
+
+print("\nTop 5 Popular Topping Combinations:")
+for i, (toppings, count) in enumerate(top_toppings, 1):
+    print(f"{i}. {', '.join(toppings)}: Ordered {count} times")
