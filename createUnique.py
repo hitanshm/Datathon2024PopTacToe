@@ -66,7 +66,7 @@ def create_unique_csv_from_order(file):
     write_orders_to_csv(data, output)
 
 
-file = 'july_2024.csv'
+file = 'june_2024.csv'
 numbers = parse_orders(file)
 # Write to new CSV file
 output_file_path = 'july unique_orders.csv'
