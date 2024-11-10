@@ -29,6 +29,10 @@ monthly_menu_counts = combined_data.groupby(['Month', 'Parent Menu Selection'])[
     fill_value=0)
 
 # Plot stacked area chart
+title = '<p style="font-family:sans-serif; color:Green; font-size: 50px;">Roni\'s Data Analysis</p>'
+st.markdown(title, unsafe_allow_html=True)
+image1_title= '<p style="font-family:sans-serif; color:White; font-size: 35px;">Monthly Menu Selections</p>'
+st.markdown(image1_title, unsafe_allow_html=True)
 fig, ax = plt.subplots(figsize=(12, 6))
 monthly_menu_counts.plot(kind='area', stacked=True, ax=ax)
 plt.title('Monthly Trend of Menu Selections (April to October 2024)', fontsize=15)
@@ -44,6 +48,8 @@ plt.show()
 mac_cheese_data = combined_data[combined_data['Parent Menu Selection'] == 'Mac and Cheese']
 modifier_counts = mac_cheese_data.groupby('Modifier')['Order ID'].nunique().sort_values(ascending=False).head(10)
 
+image2_title= '<p style="font-family:sans-serif; color:White; font-size: 35px;">Top 10 Modifiers</p>'
+st.markdown(image2_title, unsafe_allow_html=True)
 fig, ax = plt.subplots(figsize=(12, 6))
 modifier_counts.plot(kind='bar', ax=ax)
 plt.title('Top 10 Modifiers for Mac and Cheese (April to October 2024)', fontsize=15)
@@ -58,6 +64,8 @@ plt.show()
 toppings_data = combined_data[combined_data['Option Group Name'] == 'Choose Your Toppings']
 topping_counts = toppings_data.groupby('Modifier')['Order ID'].nunique().sort_values(ascending=False)
 
+image3_title= '<p style="font-family:sans-serif; color:White; font-size: 35px;">Popular Toppings</p>'
+st.markdown(image3_title, unsafe_allow_html=True)
 fig, ax = plt.subplots(figsize=(12, 6))
 topping_counts.plot(kind='bar', ax=ax)
 plt.title('Popularity of Toppings (April to October 2024)', fontsize=15)
@@ -72,6 +80,8 @@ plt.show()
 combined_data['Hour'] = combined_data['Sent Date'].dt.hour
 hourly_orders = combined_data.groupby('Hour')['Order ID'].nunique()
 
+image4_title= '<p style="font-family:sans-serif; color:White; font-size: 35px;">Orders By Hour</p>'
+st.markdown(image4_title, unsafe_allow_html=True)
 fig, ax = plt.subplots(figsize=(12, 6))
 hourly_orders.plot(kind='line', marker='o', ax=ax)
 plt.title('Order Pattern by Hour of Day (April to October 2024)', fontsize=15)
@@ -86,9 +96,11 @@ plt.show()
 # Monthly order volume
 monthly_order_volume = combined_data.groupby('Month')['Order ID'].nunique()
 
+image5_title= '<p style="font-family:sans-serif; color:White; font-size: 35px;">Monthly Order Number</p>'
+st.markdown(image5_title, unsafe_allow_html=True)
 fig, ax = plt.subplots(figsize=(12, 6))
 monthly_order_volume.plot(kind='bar', ax=ax)
-plt.title('Monthly Order Volume (April to October 2024)', fontsize=15)
+plt.title('Monthly Order Number (April to October 2024)', fontsize=15)
 plt.xlabel('Month', fontsize=12)
 plt.ylabel('Number of Orders', fontsize=12)
 month_names = ['April', 'May', 'June', 'July', 'August', 'September', 'October']
@@ -170,7 +182,8 @@ for name, importance in zip(feature_names, feature_importance):
     print(f"{name}: {importance}")
 
 # Streamlit app layout
-st.title('Order Volume Prediction')
+image6_title= '<p style="font-family:sans-serif; color:White; font-size: 35px;"> Order Volume Prediction</p>'
+st.markdown(image6_title, unsafe_allow_html=True)
 
 # Date selector for specific predictions
 selected_date = st.date_input('Select a date for prediction', value=pd.to_datetime('2025-01-01'))
