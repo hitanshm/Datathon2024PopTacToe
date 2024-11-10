@@ -1,0 +1,3 @@
+[submodule "RonisApp"]
+	path = RonisApp
+	url = https://github.com/AllenA28/RonisApp.git
