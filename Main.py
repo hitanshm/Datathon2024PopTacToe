@@ -355,8 +355,8 @@ y_pred = model.predict(X_test)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-print(f"Mean Squared Error: {mse}")
-print(f"R-squared Score: {r2}")
+#print(f"Mean Squared Error: {mse}")
+#print(f"R-squared Score: {r2}")
 
 # Feature importance
 feature_importance = model.feature_importances_
@@ -433,7 +433,8 @@ def OrderVolumePrediction():
     st.write(f"Average predicted daily orders: :red[{future_predictions.mean():.2f}]")
     st.write(f"Minimum predicted daily orders: :red[{future_predictions.min():.2f}]")
     st.write(f"Maximum predicted daily orders: :red[{future_predictions.max():.2f}]")
-
+    st.write(f"Mean Squared Error: :red[{mse}]")
+    st.write(f"R-squared Score: :red[{r2}]")
     # Print monthly averages for better insights
     monthly_averages = pd.DataFrame({
         'Month': future_dates.month,
