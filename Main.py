@@ -33,6 +33,16 @@ st.set_page_config(
         page_title="Roni's Data Analysis",
         page_icon="👋"
 )
+from streamlit_option_menu import option_menu
+with st.sidebar:
+    selected = option_menu(
+        menu_title=None,
+        options=["Home", "Monthly Menu Selections", "Top 10 Modifiers", "Popular Toppings", "Order By Hour",
+                 "Monthly Order Number", "Order Volume Prediction"],
+        icons=["house", "📊", "📊", "📊", "📊", "📊", "📊"],
+        menu_icon="cast",
+        default_index=0,
+    )
 
 # Function to set the background image
 def set_background(image_file):
@@ -60,8 +70,24 @@ def set_background(image_file):
 
 
 # Rest of your Streamlit app
-title = '<p style="font-family:sans-serif; color:Green; font-size: 50px;">Roni\'s Data Analysis</p>'
-st.markdown(title, unsafe_allow_html=True)
+box_style_M = """
+        <style>
+        .box-M {
+            display: inline-block;
+            background-color: #D3D3D3; /* Light gray background */
+            border: 4px solid #A9A9A9;
+            padding: 7px;
+            border-radius: 8px;
+            color: Green;
+            font-size: 50px; 
+            font-family: Arial, sans-serif;
+        }
+        </style>
+    """
+# Inject CSS into the Streamlit app
+st.markdown(box_style_M, unsafe_allow_html=True)
+st.markdown('<div class="box-M">Roni\'s Data Analysis</div>', unsafe_allow_html=True)
+st.write("By: Hitansh Mendiratta, Allen Thomas, and Vedant Soni")
 
 
 def MonthlyMenuSelections():
@@ -80,9 +106,12 @@ def MonthlyMenuSelections():
         }
         </style>
     """
+    set_background("roni4.jpg")
     # Inject CSS into the Streamlit app
+    st.write("")
     st.markdown(box_style, unsafe_allow_html=True)
     st.markdown('<div class="box">Monthly Menu Selection</div>', unsafe_allow_html=True)
+    st.write("")
     fig, ax = plt.subplots(figsize=(12, 6))
     monthly_menu_counts.plot(kind='area', stacked=True, ax=ax)
     plt.title('Monthly Trend of Menu Selections (April to October 2024)', fontsize=15)
@@ -95,53 +124,12 @@ def MonthlyMenuSelections():
     plt.show()
 
 
-from streamlit_option_menu import option_menu
-
-with st.sidebar:
-    selected = option_menu(
-        menu_title="Navigation",
-        options=["Home", "Monthly Menu Selections", "Top 10 Modifiers", "Popular Toppings", "Order By Hour",
-                 "Monthly Order Number", "Order Volume Prediction"],
-        icons=["house", "📊", "📊", "📊", "📊", "📊", "📊"],
-        menu_icon="cast",
-        default_index=0,
-    )
 
 
-def Home():
 
-    st.markdown(
-        """
-        <style>
-        .reportview-container {
-            background: url('roni.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: white; /* Change text color for better visibility */
-        }
 
-        .fade {
-            transition: opacity 0.5s ease-in-out;
-            opacity: 0;
-        }
 
-        .fade.show {
-            opacity: 1;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
 
-    # Front page with button to enter the main app
-    if st.button("Enter Prediction App"):
-        st.markdown('<div class="fade show">', unsafe_allow_html=True)
-
-set_background("roni1.png")
-
-if selected == "Home":
-    Home()
 if selected == "Monthly Menu Selections":
     MonthlyMenuSelections()
 
@@ -165,9 +153,12 @@ def Top10Modifiers():
             }
             </style>
         """
+    set_background("roni3.jpg")
     # Inject CSS into the Streamlit app
+    st.write("")
     st.markdown(box_style, unsafe_allow_html=True)
     st.markdown('<div class="box">Top 10 Modifiers</div>', unsafe_allow_html=True)
+    st.write("")
     fig, ax = plt.subplots(figsize=(12, 6))
     modifier_counts.plot(kind='bar', ax=ax)
     plt.title('Top 10 Modifiers for Mac and Cheese (April to October 2024)', fontsize=15)
@@ -201,9 +192,12 @@ def PopularToppings():
                 }
                 </style>
             """
+    set_background("roni4.jpg")
     # Inject CSS into the Streamlit app
+    st.write("")
     st.markdown(box_style, unsafe_allow_html=True)
     st.markdown('<div class="box">Popular Toppings</div>', unsafe_allow_html=True)
+    st.write("")
     fig, ax = plt.subplots(figsize=(12, 6))
     topping_counts.plot(kind='bar', ax=ax)
     plt.title('Popularity of Toppings (April to October 2024)', fontsize=15)
@@ -223,6 +217,7 @@ hourly_orders = combined_data.groupby('Hour')['Order ID'].nunique()
 
 
 def OrdersByHour():
+    set_background("roni3.jpg")
     box_style = """
                 <style>
                 .box {
@@ -238,8 +233,10 @@ def OrdersByHour():
                 </style>
             """
     # Inject CSS into the Streamlit app
+    st.write("")
     st.markdown(box_style, unsafe_allow_html=True)
     st.markdown('<div class="box">Orders By Hour</div>', unsafe_allow_html=True)
+    st.write("")
     fig, ax = plt.subplots(figsize=(12, 6))
     hourly_orders.plot(kind='line', marker='o', ax=ax)
     plt.title('Order Pattern by Hour of Day (April to October 2024)', fontsize=15)
@@ -275,8 +272,11 @@ def MonthlyOrderNumber():
                     </style>
                 """
     # Inject CSS into the Streamlit app
+    set_background("roni3.jpg")
+    st.write("")
     st.markdown(box_style, unsafe_allow_html=True)
     st.markdown('<div class="box">Monthly Order Number</div>', unsafe_allow_html=True)
+    st.write("")
     fig, ax = plt.subplots(figsize=(12, 6))
     monthly_order_volume.plot(kind='bar', ax=ax)
     plt.title('Monthly Order Number (April to October 2024)', fontsize=15)
@@ -383,12 +383,13 @@ def OrderVolumePrediction():
                     </style>
                 """
     # Inject CSS into the Streamlit app
+    set_background("roni1.png")
+    st.write("")
     st.markdown(box_style, unsafe_allow_html=True)
     st.markdown('<div class="box">Order Volume Prediction</div>', unsafe_allow_html=True)
-
+    st.write("")
     # Date selector for specific predictions
     selected_date = st.date_input('Select a date for prediction', value=pd.to_datetime('2025-01-01'))
-
     # Prepare input for prediction based on selected date
     selected_X = pd.DataFrame({
         'DayOfWeek': [selected_date.weekday()],
@@ -431,9 +432,9 @@ def OrderVolumePrediction():
 
     # Print some statistics about the predictions
     st.write("\nPrediction Statistics:")
-    st.write(f"Average predicted daily orders: {future_predictions.mean():.2f}")
-    st.write(f"Minimum predicted daily orders: {future_predictions.min():.2f}")
-    st.write(f"Maximum predicted daily orders: {future_predictions.max():.2f}")
+    st.write(f"Average predicted daily orders: :red[{future_predictions.mean():.2f}]")
+    st.write(f"Minimum predicted daily orders: :red[{future_predictions.min():.2f}]")
+    st.write(f"Maximum predicted daily orders: :red[{future_predictions.max():.2f}]")
 
     # Print monthly averages for better insights
     monthly_averages = pd.DataFrame({
@@ -445,3 +446,62 @@ def OrderVolumePrediction():
     st.write(monthly_averages)
 if selected == "Order Volume Prediction":
     OrderVolumePrediction()
+def Home():
+
+    st.markdown(
+        """
+        <style>
+        .reportview-container {
+            background: url('roni.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: white; /* Change text color for better visibility */
+        }
+
+        .fade {
+            transition: opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+
+        .fade.show {
+            opacity: 1;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Front page with button to enter the main app
+    st.markdown("""
+        <style>
+        /* Increase button size and initial background color */
+        .stButton > button {
+            font-size: 60px;          /* Increase font size */
+            padding: 35px 70px;
+            background-color: #4CAF50; /* Initial color */
+            color: white;
+            border: yellow;
+            border-radius: 8px;
+            transition: background-color 0.5s ease;
+        }
+        /* Change button color on hover */
+        .stButton > button:hover {
+            background-color: #45a049; /* Color on hover */
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
+    # Display button with customized style
+    if st.button("Analyze Data"):
+        st.markdown('<div class="fade show">Button clicked!</div>', unsafe_allow_html=True)
+        MonthlyMenuSelections()
+        Top10Modifiers()
+        PopularToppings()
+        OrdersByHour()
+        MonthlyOrderNumber()
+        OrderVolumePrediction()
+
+    set_background("roni1.png")
+if selected == "Home":
+    Home()
